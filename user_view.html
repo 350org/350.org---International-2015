@@ -1,0 +1,75 @@
+{% extends './wrapper.html' %}
+{% load actionkit_tags %}
+{% block content %}
+
+<div id="content" class="one-col">
+	<h1 class="title2">{{ actionkit_user.name }}</h1>
+	<p class="text-small"><a href="/logout/">{% filter ak_text:"general_recognized_user_logout_instructions" %}Click here to logout.{% endfilter %}</a></p>
+	
+	{% if messages %}
+	<ul class="messages">
+	{% for message in messages %}
+		<li>{{ message }}</li>
+	{% endfor %}
+	</ul>
+	{% endif %}
+	
+	<div class="section note">
+		<h2>{% filter ak_text:"user_view_personal_info_header" %}Your Information{% endfilter %}</h2>
+		<p class="text-large2">
+			<strong>{{ actionkit_user.name }}</strong><br>
+			{{ actionkit_user.email }}<br>
+			{{ actionkit_user.address1 }}
+			{{ actionkit_user.address2 }}
+			{{ actionkit_user.city }}, {{ actionkit_user.state }} {{ actionkit_user.zip }}
+			{{ actionkit_user.country }}
+		</p>
+		<p><a class="button button-secondary" href="update/">{% filter ak_text:"user_view_update_info" %}Update your information{% endfilter %}</a></p>
+	</div>
+
+	{% if recurring_donations %}
+	<div class="section note">
+		<h2>{% filter ak_text:"user_view_recurringdonation_header" %}Your Recurring Donations{% endfilter %}</h2>
+		<ul>
+		{% for profile in recurring_donations %}
+		<li>{{ profile.amt }} a {{ profile.inverse_period_display|lower }}, started on {{ profile.created_at|date:"m/d/Y" }}. 
+		You've given a total of {{ profile.payment_total_amt }}. 
+		{% if profile.is_active %}
+		  {% if profile.order.payment_method != "paypal" %}
+			<a href="/cms/pledge/update/update/">Update your credit card</a> or <a href="/cms/pledge/cancel/monthly/">cancel at any time.</a>
+		  {% else %}
+			<a href="/cms/pledge/cancel/monthly/">Cancel at any time.</a>
+		  {% endif %} 
+		{% else %}
+		  <b>{{ profile.get_status_display }} on {{ profile.updated_at|date:"m/d/Y" }} </b>
+		{% endif %}
+		{% endfor %}
+		</ul>
+	</div>
+	{% endif %}
+	
+	{% if donations %}
+	<div class="section note">
+		<h2>{% filter ak_text:"user_view_donation_header" %}Your Donations{% endfilter %}</h2>
+		<ul>
+		{% for donation in donations %}
+			<li>{{ donation.amt }} on {{ donation.created_at|date:"m/d/Y" }}  {% if donation.recurring %} (Recurring) {% endif %}
+		{% endfor %}
+		</ul>
+	</diV>
+	{% endif %}
+
+	<div class="section note">
+		<h2>{% filter ak_text:"user_view_mailinglists_header" %}Your Email Subscriptions{% endfilter %}</h2>
+		<ul class="text-large2">
+		{% for subscription in actionkit_user.subscription_history %}
+			<li><strong>{{ subscription.list.name }}</strong> at {{ subscription.created_at|date:"m/d/Y" }}
+		{% endfor %}
+		</ul>
+		{% if actionkit_user.is_subscribed %}
+		<p><a class="button button-secondary" href="/cms/unsubscribe/unsubscribe/?akid={{ actionkit_user.token }}">{% filter ak_text:"general_unsubscribe" %}Unsubscribe{% endfilter %}</a></p>
+		{% endif %}
+	</div>
+
+</div>
+{% endblock %}

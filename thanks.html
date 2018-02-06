@@ -1,0 +1,186 @@
+{% extends "./wrapper.html" %}{% load actionkit_tags %}
+
+{% block content %}
+{% autoescape off %}
+
+<script id="iframe-embed-css" type="text/plain">
+  	#page-header {
+		display: none;
+		}
+	#main {
+		padding: 0;
+		margin: 0;
+		border: none;
+		}
+	body {
+		background: none;
+		}
+	#form, form {
+		background-color: white !important;
+		}
+	label, legend, em {
+		color: black !important;
+		}
+	#container {
+		padding: 0;
+		}
+	#footer {
+		display: none;
+		}
+</script>
+
+<div id="thanks" class="thanks">
+
+<!-- <div id="page-header">
+<h2 id="page-title">Thanks!</h2>
+</div> -->
+
+
+<form class="ak-form dummy" name="act" method="POST" action="/act/" accept-charset="utf-8">
+<input type="hidden" name="page" value="{{ page.name }}" />
+{% include "./progress_meter.html" %}
+</form>
+<div id="content">
+{% include_tmpl form.thank_you_text %}
+</div>
+
+
+<form name="taf" method="POST" action="/update_action/" accept-charset="utf-8">
+<input type="hidden" name="utf8" value="&#x2714;" />
+<input type="hidden" name="page" value="{{ page.name }}" />
+
+
+<div id="taf" style="display:block">
+
+
+<ul id="ak-errors"><li></li></ul>
+
+<div class="taf-option taf-option-1" id="taf-facebook">
+	<h5 class="taf-heading">Facebook</h5>
+	{% if page.custom_fields.fb_share_url %}
+		<a class="fb-share" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u={{ page.custom_fields.fb_share_url }}?source=fb-AK">{% filter ak_text:"general_share_on_fb" %}Share on Facebook{% endfilter %}</a>
+	{% else %}
+		<a class="fb-share" target="_blank" href="/share/link?type=fb&amp;page_name={{page.name}}&amp;action_id={{action.id}}&amp;akid={{akid}}">{% filter ak_text:"general_share_on_fb" %}Share on Facebook{% endfilter %}</a>
+	{% endif %}
+</div>
+
+
+<div class="taf-option taf-option2" id="taf-twitter">
+	<h5 class="taf-heading">Twitter</h5>
+	{% if page.custom_fields.tweet_content %}
+		<a class="tw-share" target="_blank" href="http://twitter.com/home?status={{ page.custom_fields.tweet_content|urlencode}}">{% filter ak_text:"general_tweet" %}Tweet{% endfilter %}</a>
+	{% else %}
+		<a class="tw-share" target="_blank" href="/share/link?type=tw&amp;page_name={{page.name}}&amp;action_id={{action.id}}&amp;akid={{akid}}">{% filter ak_text:"general_tweet" %}Tweet{% endfilter %}</a>
+	{% endif %}
+</div>
+	<div class="clear"></div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+$(".email").hide();
+$("#taf-email h4").append('&nbsp;<span class="expandable">+</span>').css('cursor','pointer').toggle(
+function(event){
+$(this).next().slideDown();
+$(this).children('.expandable').text('-');
+event.preventDefault();
+}, function(event){
+$(this).next().slideUp();
+$(this).children('.expandable').text('+');
+event.preventDefault();
+});
+$("a.close").click(function(){
+$(".email").slideUp();
+});
+}); 
+</script>
+
+<div class="taf-option taf-option-3" id="taf-email" style="display:none">
+<h4>Share via Email</h4>
+
+<div class="email">
+
+<div class="input text to email-header">
+<div class="to email-header-label">{% filter ak_text:"general_message_to" %}To:{% endfilter %}</div>
+<div class="input text to email-header-content"><label class="wide" for="id_taf_emails">Enter friends' e-mail addresses:</label><input type="text" id="id_taf_emails" name="taf_emails" title="Enter the email address of the people you're sharing this with, separated by commas. e.g. example@example.com, example2@example.com" /></div>
+</div>
+
+<div class="subject email-header">
+<div class="subject email-header-label"><label id="lbl_taf_subject" for="id_taf_subject">Subject:</label></div>
+<div class="subject email-header-content"><span class="taf_subject">{% include_tmpl page.followup.taf_subject escaped %}</span></div>
+</div>
+
+<div class="message email-header">
+<div class="message email-header-label"><label class="message" for="id_taf_body">Message:</label></div>
+<div class="message email-header-content">{% filter referring_akid:akid|tag_links:"source=taf"|linebreaksbr %}{% include_tmpl page.followup.taf_body escaped %}{% endfilter %}</div>
+</div>
+
+<div class="input textarea note email-header">
+<div class="note email-header-label">Note: (optional)</div>
+<div class="note email-header-content"><textarea id="id_taf_note" name="taf_note" title="If you'd like to add a short personalized note after the message, enter it here." style="height: 75px;"></textarea></div>
+</div>
+
+<input type="hidden" name="required" value="taf_emails">
+<div class="submit email-header">
+<div class="submit email-header-label"></div>
+<div class="submit email-header-content"><input type="submit" class="submit" value="{% filter ak_text:"general_send" %}Send{% endfilter %}	" /></div>
+</div>
+
+</div>
+
+</div>
+
+{% if page.custom_fields.page_is_c4 %}{% else %}
+<div class="page-link taf-option taf-option-3" id="taf-pagelink" onClick="SelectAll('page-link-url')">
+<h5 class="taf-heading">{% filter ak_text:"general_share_link" %}Link:{% endfilter %}</h5>
+<input onClick="SelectAll('page-link-url')" id="page-link-url" type="text" class="page-link-url" value="{{ page.canonical_url }}"/>
+<script>$('#page-link-url').val($('#page-link-url').val().replace('/donation/','/donate/'));</script>
+<br class="clear" />
+</div>
+{% endif %}
+
+
+{% ifequal page.type "Petition" %}
+<div class="taf-option taf-option-4" id="taf-donate" style="display:none;">
+<h5 class="taf-heading">Donate</h5>
+<a class="thanks-donate" href="http://350.org/donate">Donate to 350</a>
+</div>
+{% else %}
+{% ifequal page.type "Call" %}
+<div class="taf-option taf-option-4" id="taf-donate">
+<h5 class="taf-heading">Donate</h5>
+<a id="thanks-donate" href="http://350.org/donate">Donate to 350</a>
+</div>
+{% endifequal %}
+{% endifequal %}
+
+</div>
+</form>
+
+</div>
+
+{% if page.custom_fields.thanks_ask_for_donation %}
+<div id="thank-you-donate">
+	<a href="/donate/build?source=thanks_page"><img src="https://s3.amazonaws.com/s3.350.org/images/350-ak-thankyou-donate.jpg" alt="400,000 people in the People's Climate March - Donate to 350.org" /></a>
+</div>
+{% endif %}
+
+
+{% endautoescape %}
+
+{% endblock %}
+
+
+{% block below_form %}
+<script type="text/javascript">
+actionkit.sharing.initShareTools();
+actionkit.forms.contextRoot = '/context/';
+{% if page.followup.send_taf %}
+actionkit.forms.initTafForm('taf');
+{% else %}
+actionkit.forms.initForm('act');
+{% endif %}
+
+</script>
+
+<script src="https://s3.amazonaws.com/s3.350.org/images/ak-iframe-resizer-interior.js"></script>
+{% endblock %}

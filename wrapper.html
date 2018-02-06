@@ -1,0 +1,218 @@
+{% load actionkit_tags %}<!doctype html>
+<html lang="{{ page.lang.iso_code|default:"en-US"}}"{% if page.lang.is_rtl %} dir="rtl"{% endif %}>
+<head>
+{% if page.custom_fields.page_custom_webfonts %}
+	{% autoescape off %}
+	{{ page.custom_fields.page_custom_webfonts }}
+	{% endautoescape %}
+{% elif page.lang.iso_code == "ja" %}
+	
+{% else %}
+<script src="//ajax.googleapis.com/ajax/libs/webfont/1.5.3/webfont.js"></script>
+<script>
+	WebFont.load({
+		custom: {
+			families: ['KlimaWeb:n5,n7', 'GraphWeb:n7'],
+			urls: ['//350.org/wp-content/themes/threefifty_main/library/webfonts/fonts.css']
+		},
+		google: { 
+			families: [ 'Permanent+Marker::latin' ] 
+		},
+		timeout: 4500
+		});
+</script>
+<script>startTime=new Date()</script>
+{% endif %}
+{% if page.lang.iso_code == "tr" %}
+<style>
+	#page-title {
+		font-family: KlimaWeb,sans-serif !important;
+		font-weight: bold !important;}
+</style>
+{% endif %}
+<title>{% if events|is_defined %}{{ event.title }} - {% client_name %}{% else %}{{ page.title }} - {% client_name %}{% endif %}</title>
+{% if page.custom_fields.page_hide_from_search_engines %}
+	<meta name="robots" content="noindex">
+{% endif %}
+
+	<meta charset="utf-8" />
+	<meta name="google-site-verification" content="xBbyZ3PFWhcaCUUS4MfP-1L-BCB1CgGiUzcpOzbk6pM" />
+	<meta http-equiv="X-UA-Compatible" content="IE=9; IE=8; IE=7; IE=EDGE" />
+{% if page.custom_fields.page_hide_from_search_engines %}
+	<meta name="robots" content="noindex">
+{% endif %}
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta property="og:type" content="website" />
+{% if page.custom_fields.page_is_c4 %}	
+	<meta property="fb:app_id" content="813320562104969" />
+{% else %}
+	<meta property="fb:app_id" content="148617041897246" />
+{% endif %}
+{% if page.lang.iso_code == 'en' %}
+	<meta property="og:locale" content="{{page.lang.iso_code|default:'en' }}_US" />
+{% else %}
+	<meta property="og:locale" content="{{ page.lang.iso_code|default:'en' }}_{{ page.lang.iso_code|default:'US'|upper }}" />
+{% endif %}
+	{{ page.followup.share_image_tag }}
+{% if page.custom_fields.fb_pic_url %}
+	<meta property="og:image" content="{{ page.custom_fields.fb_pic_url }}" />
+{% endif %}
+{% if page.type == "EventCreate" or page.type == "EventSignup" %}
+	<link rel="stylesheet" href="https://s3.amazonaws.com/s3.350.org/images/event-styles-2013.css" type="text/css" />
+{% endif %}
+{% if events|length %}
+	<meta property="og:url" content="https://act.350.org{{ event.public_url }}" />
+	<meta property="og:title" content="{% if event.title %}{{ event.title }}{% else %}{% if page.custom_fields.fb_title %}{{ page.custom_fields.fb_title|escape }}{% else %}{{page.title|escape}}{% endif %}{% endif %}" />
+	<meta property="og:description" content="{% if page.custom_fields.fb_description %}{{ page.custom_fields.fb_description }}{% else %}{{ event.public_description|striptags }}{% endif %}" />	
+	<meta name="twitter:url" content="https://act.350.org{{ event.public_url }}" />
+	<meta name="twitter:title" content="{% if event.title %}{{ event.title }}{% else %}{% if page.custom_fields.fb_title %}{{ page.custom_fields.fb_title|escape }}{% else %}{{page.title|escape}}{% endif %}{% endif %}" />
+	<meta name="twitter:description" content="{% if page.custom_fields.fb_description %}{{ page.custom_fields.fb_description }}{% else %}{{ event.public_description|striptags }}{% endif %}" />
+{% else %}
+	{% if page.followup.share_title_tag %}
+	{{ page.followup.share_title_tag }}
+	{% else %}
+	<meta property="og:title" content="{% if page.custom_fields.fb_title %}{{ page.custom_fields.fb_title|escape }}{% else %}{{page.title|escape}}{% endif %}" />
+	{% endif %}
+	{% if page.followup.share_url_tag %}
+	{{ page.followup.share_url_tag }}
+	{% else %}
+	<meta property="og:url" content="{% if page.custom_fields.fb_share_url %}{{ page.custom_fields.fb_share_url }}{% else %}{{ page.followup.share_url_value }}{% endif %}" />
+	{% endif %}
+	{% if form.id %}
+	<meta name="description" property="og:description" content="{% block description %}{{ page.followup.share_description_value }}{% endblock %}">
+	{% endif %}
+	{% if page.custom_fields.fb_description %}
+	<meta property="og:description" content="{{ page.custom_fields.fb_description }}" />
+	{% endif %} 
+	<meta name="twitter:url" content="{% if page.custom_fields.fb_share_url %}{{ page.custom_fields.fb_share_url }}{% else %}{{ page.canonical_url }}{% endif %}" />
+	<meta name="twitter:title" content="{% if page.custom_fields.fb_title %}{{ page.custom_fields.fb_title|escape }}{% else %}{{page.title|escape}}{% endif %}" />
+	<meta name="twitter:description" content="{% if page.custom_fields.fb_description %}{{ page.custom_fields.fb_description }}{% else %}{{ page.followup.share_description_value }}{% endif %}" />
+{% endif %}
+{% if page.custom_fields.fb_pic_url %}
+	<meta name="twitter:image" content="{{ page.custom_fields.fb_pic_url }}" />
+{% endif %}
+{% if page.custom_fields.page_is_c4 %}
+	<meta name="twitter:site" content="@350action" />
+	<meta name="twitter:site:id" content="350action.org" />
+{% else %}
+	<meta name="twitter:site" content="@350" />
+	<meta name="twitter:site:id" content="350.org" />
+{% endif %}
+{% block meta_additions %}{% endblock %}
+
+<link rel="stylesheet" type="text/css" href="//dbqvwi2zcv14h.cloudfront.net/images/styles-2015-05-28.css" />
+  {% if page.custom_fields.page_background_image %}
+    <style type="text/css">
+      @media screen and (min-width:880px) {
+        html{ background:url({{page.custom_fields.page_background_image}}) no-repeat fixed center top !important;background-size:cover !important;}
+        body {background:transparent;}
+      }
+    </style>
+  {% endif %}
+<!--[if lt IE 9]>
+<link rel="stylesheet" type="text/css" href="//dbqvwi2zcv14h.cloudfront.net/images/ak-ie8-2012.css" />
+<script src="//dbqvwi2zcv14h.cloudfront.net/images/html5shiv.js"></script>
+<![endif]-->
+<!--[if lt IE 8]>
+<link rel="stylesheet" type="text/css" href="//dbqvwi2zcv14h.cloudfront.net/images/ak-ie7-2012.css" />
+<![endif]-->
+{% block css_additions %}{% endblock %}
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  {% if page.custom_fields.form_include_college %}
+    <!-- Select menu plugin for huge select menus: http://harvesthq.github.com/chosen/ -->
+    <script type="text/javascript" src="//dbqvwi2zcv14h.cloudfront.net/images/chosen.js"></script>
+    <link rel="stylesheet" type="text/css" href="//dbqvwi2zcv14h.cloudfront.net/images/chosen.css" />
+	<script type="text/javascript">
+jQuery(document).ready(function(){
+ jQuery("#user_campus").chosen();
+});
+</script>
+  {% endif %}
+<script type="text/javascript">
+  if( window.location.pathname.match("peoples_climate") && (window.parent) ) {
+	  window.parent.postMessage(window.location.pathname, "http://2014.peoplesclimate.org");
+  }
+  if( window.location.pathname.match("gofossilfree") && (window.parent) ) {
+	  window.parent.postMessage(window.location.pathname, "http://gofossilfree.org");
+  }
+  if( window.location.pathname.match("gdd2017") && (window.parent) ) {
+	  window.parent.postMessage(window.location.pathname, "http://globaldivestmentmobilisation.org/");
+  }
+// Trim "source" to < 255 chars to prevent errors from being thrown
+$(document).ready(function(){
+	$("form:first").submit(function(){
+		var source_string = $("input[name='source']").val();
+		var source_string_trimmed = source_string.substring(0,255);
+		$("input[name='source']").val(source_string_trimmed);
+	});
+});
+</script>
+
+<script type="text/javascript" src="//dbqvwi2zcv14h.cloudfront.net/images/scripts-2013.js"></script>
+<script type="text/javascript" src="/resources/actionkit.js"></script>
+	{% ifequal page.type "EventCreate" %}
+<script src="//tinymce.cachefly.net/4.0/tinymce.min.js"></script>
+	{% endifequal %}
+</head>
+<body class="{{ filename|split:'.'|nth:0 }}-page {{ page.type }} {{page.lang.iso_code|default:"en-US"}}">
+	{% if page.custom_fields.page_hide_from_search_engines %}
+	<div style="color:#fff;background:turquoise;position:fixed;top:0;padding:10px;font-size:18px;font-weight:bold;text-align:center;width:100%;z-index:9999;">This page is currently being hidden from search engines.</div>
+	{% endif %}
+<script type="text/javascript">actionkit.forms.initPage()</script>
+<div id="container">
+<div id="main">
+{% block content %}{% endblock %}
+{% block below_form %}
+<script type="text/javascript">
+actionkit.forms.contextRoot = '/context/';
+actionkit.forms.initForm('act');
+</script>
+{% endblock %}
+
+{% if analytics_key %}
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', '{{ analytics_key }}', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+{% endif %}
+
+<br class="clear" />
+</div>
+
+<div id="footer" class="">
+  {% if page.custom_fields.page_is_c4 %}
+  <div id="footer-links">{% ifnotequal page.type "Donation" %}<a href="https://act.350.org/donate/action/">Donate</a> / {% endifnotequal%}<a id="privacy-link" href="http://www.350action.org/privacy/">Privacy</a> / <a href="http://www.350action.org/contact/">Contact</a></div>
+<a id="c4-footer-logo" href="http://350action.org/">350action.org</a>
+{% else %}
+<div id="footer-links">
+	{% if page.custom_fields.page_no_logo %}{% else %}
+	{% ifequal page.type "Donation" %} {% else %}<a 
+href="{% filter ak_text:"footer_donate_url" %}http://350.org/donate{% endfilter %}">{% filter ak_text:"footer_donate" %}Donate{% endfilter %}</a> / {% endifequal%}<a id="privacy-link" href="{% filter ak_text:"footer_privacy_url" %}http://350.org/en/privacy{% endfilter %}">{% filter ak_text:"footer_privacy" %}Privacy{% endfilter %}</a> / <a href="{% filter ak_text:"footer_contact_url" %}http://350.org/en/contact/{% endfilter %}">{% filter ak_text:"footer_contact" %}Contact{% endfilter %}</a></div>
+<a id="footer-logo" href="http://350.org/">350.org</a>
+{% endif %}
+{% endif %}
+
+<div class="clear"></div>
+</div>
+
+</div>
+
+{% block tail_js %}{% endblock %}
+{% autoescape off %}
+<div id="bg-reveal" title="See the background image">{% if page.custom_fields.page_background_image_credit %}<span id="bg-credit-label">Image by:</span><span id="bg-credit-name">{{page.custom_fields.page_background_image_credit}}</span>{% endif %}</div>
+{% endautoescape %}
+	<script src="//c.shpg.org/6/sp.js"></script>
+	<script type="text/javascript">
+		if ('parentIFrame' in window) {
+          parentIFrame.sendMessage(window.location.href, "*");
+			}
+		</script>
+</body>
+</html>

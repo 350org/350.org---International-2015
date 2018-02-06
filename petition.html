@@ -1,0 +1,64 @@
+{% extends "./wrapper.html" %}
+{% load actionkit_tags %}
+{% block content %}
+
+<div id="page-header">
+<h2 id="page-title" class="">{{ page.title }}</h2>
+</div>
+
+{% autoescape off %}
+
+{% if page.custom_fields.page_is_inactive %}
+<div id="page-inactive">
+{{ page.custom_fields.page_is_inactive }}
+</div>
+{% else %}
+<form class="action_form ak-form" name="act" method="POST" action="/act/" accept-charset="utf-8">
+
+<div id="form">
+{% if page.custom_fields.form_text_above_form %}
+{% autoescape off %}
+<div id="form-intro">{{ page.custom_fields.form_text_above_form }}</div>
+{% endautoescape %}
+{% endif %}
+<div class="petition">
+<div class="petition-text">
+{% if form.statement_leadin %}
+<div class="petition-intro">{% include_tmpl form.statement_leadin %}</div>
+{% endif %}
+<div class="petition-text-inner">{% include_tmpl form.statement_text %}</div>
+</div>
+</div>
+
+<p class="signed">{% filter ak_text:"petition_form_introduction" %}Signed,{% endfilter %}</p>
+
+<input type="hidden" name="utf8" value="&#x2714;" />
+
+<ul class="" id="ak-errors"><li></li></ul>
+
+{% include "./user_form_wrapper.html" %}
+
+<div class="input textarea comment ak-labels-overlaid">
+
+<p id="comment-instructions" style="display:none;">{% filter ak_text:"petition_comment_instructions" %}Add a personal comment{% endfilter %}</p>
+
+<label class="comment" for="id_comment">{% filter ak_text:"petition_comment_label" %}Your Personal Comment (optional){% endfilter %}</label><textarea id="id_comment" name="action_comment" class="comment" rows="3" cols="70"></textarea>
+</div>
+<input type="hidden" name="page" value="{{ page.name }}" />
+<input type="submit" class="submit" value="{% if page.custom_fields.form_submit_button_text %}{{ page.custom_fields.form_submit_button_text }}{% else %}{% filter ak_text:"petition_submit_button" %}Add Your Name{% endfilter %}{% endif %}" />
+<input type="hidden" name="want_progress" value="1" />
+
+</div>
+<div id="form-secondary">
+{% include "./progress_meter.html" %}
+{% include "./social_plugins.html" %}
+</form>
+{% endif %}
+
+<div id="content">
+<div class="petition-about">{% include_tmpl form.about_text %}</div>
+</div>
+<br class="clear" />
+
+{% endautoescape %}
+{% endblock %}

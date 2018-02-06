@@ -1,0 +1,62 @@
+{% extends "./wrapper.html" %}{% load actionkit_tags %}
+{% block content %}
+
+<div id="page-header">
+<h2 id="page-title" class="">{{ page.title }}</h2>
+</div>
+
+<div id="content">
+<div class="intro">
+{% include_tmpl form.introduction_text %}
+</div>
+</div>
+
+{% if page.custom_fields.page_is_inactive %}
+<div id="page-inactive">
+{% autoescape off %}
+{{ page.custom_fields.page_is_inactive }}
+{% endautoescape %}
+</div>
+{% else %}
+<form class="ak-form" name="act" method="POST" action="/act/" accept-charset="utf-8">
+
+<div id="form"><input type="hidden" name="utf8" value="&#x2714;">
+
+{% if page.custom_fields.form_text_above_form %}
+{% autoescape off %}
+<div id="form-intro">{{ page.custom_fields.form_text_above_form }}</div>
+{% endautoescape %}
+{% endif %}
+
+{% autoescape off %}
+<input type="hidden" name="lists" value="{{ page.list.id }}" />
+{% include "./user_form_wrapper.html" %}
+
+<div id="survey-questions" class="col ak-labels-above">
+{% for question in form.surveyquestion_set.all %}
+<div class="survey-question">
+<label>{{ question.question_label }}</label>
+{{ question.question_html }}
+</div>
+{% endfor %}
+</div>
+
+<div class="submit-form">
+<input type="hidden" name="page" value="{{ page.name }}" />
+<input type="submit" value="{% if page.custom_fields.form_submit_button_text %}{{ page.custom_fields.form_submit_button_text }}{% else %}Submit{% endif %}" class="submit" />
+</div>
+</div>
+{% endautoescape %}
+
+{% spaceless %}
+<div id="form-secondary">
+{% include "./progress_meter.html" %}
+{% include "./social_plugins.html" %}
+{% endspaceless %}
+</form>
+{% endif %}
+
+
+{% endblock %}
+
+

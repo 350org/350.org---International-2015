@@ -1,0 +1,112 @@
+{% extends "./wrapper.html" %}{% load actionkit_tags %}
+{% block content %}
+
+<script type="text/javascript" for="call-scripts">
+$(document).ready(function(){
+
+
+$("#target_checkboxes input").on("change", function(){
+console.log('input change event fired');
+	if ( $(this).is(':checked') ) {
+console.log('input is checked');
+		//$("#post-call").show();
+		//$("#script").hide()
+	} else {
+console.log('input is not checked');
+		//$("#post-call").hide();
+		//$("#script").show()
+	}
+});
+$("#script").each(function(){
+	var script = $(this);
+	$(script).addClass('collapsed').append('<a id="script-expando-link" class="expando-link">See whole script</a>');
+	$("a#script-expando-link").on("click", function(e){
+		e.preventDefault();
+		$(script).toggleClass('collapsed');
+$(this).text('Click to expand/collapse script');
+	});
+});	
+
+});
+</script>
+<div id="page-header">
+<h2 id="page-title" class="">{{ page.title }}</h2>
+</div>
+
+{% if page.custom_fields.page_is_inactive %}
+<div id="page-inactive">
+{% autoescape off %}
+{{ page.custom_fields.page_is_inactive }}
+{% endautoescape %}
+</div>
+{% else %}
+<form class="ak-form" name="act" method="post" action="/act/" accept-charset="utf-8">
+<div id="form">
+<input type="hidden" name="utf8" value="&#x2714;" />
+<div id="what_to_say"></div>
+<script type="text/ak-template" for="what_to_say">
+[% if (incomplete) { %]
+{% if page.custom_fields.form_text_above_form %}
+{{ page.custom_fields.form_text_above_form }}
+{% else %}
+<p class="form-instructions"><h4>Enter your information to find the right phone number to call:</h4></p>
+{% endif %}
+[% } else { %]
+
+[% } %]
+</script>
+<div id="target_checkboxes" class="input checkbox ak-labels-above">
+</div>
+<div id="script">
+<div id="script-inner">
+<h5>Sample Call Script:</h5>
+{% include_tmpl form.script_text %}
+</div>
+</div>
+
+<div id="post-call" class="ak-labels-overlaid">
+<div id="ak-survey_question" class="input textarea"></div>
+{% if form.survey_question_text %}
+<script type="text/ak-template" for="ak-survey_question">
+
+[% if (!incomplete) { %]
+
+<div class="input textarea">
+<!-- Let's fucking hardcode this bullshit 
+{% include_tmpl form.survey_question_text %} -->
+<label for="id_action_survey">Did you get a response? If so, summarize it in this box. </label> 
+<textarea class="survey" id="id_action_survey" name="action_survey" rows="4" cols="40"></textarea>
+</div>
+
+[% } %]
+</script>
+{% endif %}
+<div id="unknown_user">{% include "./user_form_wrapper.html" %}</div>
+
+<input type="hidden" name="page" value="{{ page.name }}" />
+
+<div id="ak-call-submit-button" class="input textarea"></div>
+<script type="text/ak-template" for="ak-call-submit-button">
+[% if (!incomplete) { %]
+<input type="submit" class="submit" value="{% if page.custom_fields.form_submit_button_text %}{{page.custom_fields.form_submit_button_text}}{% else %}Tell us How it Went!{% endif %}" />
+[% } else { %]
+<input type="submit" class="submit" value="Find the Phone Number" />
+[% } %]
+</script>
+</div>
+
+</div>
+<div id="form-secondary">
+{% include "./progress_meter.html" %}
+
+{% include "./social_plugins.html" %}
+</form>
+{% endif %}
+<div id="content">
+
+<div class="intro">{% include_tmpl form.introduction_text %}</div>
+
+</div>
+
+<br class="clear" />
+{% endblock %}

@@ -1,0 +1,13 @@
+{% load actionkit_tags %}
+<select name="{{ input_name_prefix }}country" id="{{ input_name_prefix }}country" {% if onchange %}onchange="{{ onchange }}" onblur="{{ onchange }}"{% endif %}>
+	<option selected value="">{% filter ak_text:"field_country" %}Country{% endfilter %}</option>
+{% for std_name,name in page.lang_or_en.country_names %}<option value="{{ std_name|escapeall }}">{{ name|escapeall }}</option>{% endfor %}
+</select>
+
+{% if page.custom_fields.form_preselect_country %}
+<Script type="text/javascript">
+$(document).ready(function(){
+$("#{{ input_name_prefix }}country").val('{{ page.custom_fields.form_preselect_country }}').change();
+});
+</script>
+{% endif %}

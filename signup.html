@@ -1,0 +1,54 @@
+{% extends "./wrapper.html" %}{% load actionkit_tags %}
+
+
+{% block content %}
+<div id="page-header">
+<h2 id="page-title" class="">{{ page.title }}</h2>
+</div>
+
+<div id="content">
+<div class="signup description">
+{% autoescape off %}
+{% include_tmpl form.introduction_text %}
+{% endautoescape %}
+</div>
+</div>
+
+{% if page.custom_fields.page_is_inactive %}
+<div id="page-inactive">
+{% autoescape off %}
+{{ page.custom_fields.page_is_inactive }}
+{% endautoescape %}
+</div>
+{% else %}
+<form class="action_form ak-form" name="act" method="POST" action="/act/" accept-charset="utf-8">
+<div id="form">
+<fieldset>
+<input type="hidden" name="utf8" value="&#x2714;">
+
+{% autoescape off %}
+{% if page.custom_fields.form_text_above_form %}
+<div id="form-intro">{{ page.custom_fields.form_text_above_form }}</div>
+{% else %}
+<div id="form-intro"><h5>{% filter ak_text:"signup_form_intro" %}{% endfilter %} </h5></div>
+{% endif %}
+    {% include "./user_form_wrapper.html" %}
+{% endautoescape %}
+
+
+<input type="submit" class="submit" value="{% if page.custom_fields.form_submit_button_text %}{{ page.custom_fields.form_submit_button_text }}{% else %}{% filter ak_text:"signup_submit_button" %}Sign Up{% endfilter %}{% endif %}" />
+<input type="hidden" name="page" value="{{ page.name }}" />
+</fieldset>
+</div>
+{% spaceless %}
+<div id="form-secondary">
+{% include "./progress_meter.html" %}
+{% include "./social_plugins.html" %}
+{% endspaceless %}
+</form>
+{% endif %}
+
+
+
+{% endblock %}
+

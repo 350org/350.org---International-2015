@@ -1,0 +1,47 @@
+{% extends "./wrapper.html" %}{% load actionkit_tags smartif %}
+<link rel="stylesheet" href="https://s3.amazonaws.com/s3.350.org/images/event-styles-2013.css" type="text/css" />
+{% block content %}
+
+	<script id="iframe-embed-css" type="text/css">
+  	#page-header {
+		display: none;
+		}
+	#main {
+                margin: 15px;
+                padding: 10px;
+		border: none;
+		}
+	body {
+		background: none;
+		}
+	#form, form {
+		background-color: white !important;
+		}
+	label, legend, em {
+		color: black !important;
+		}
+	#container {
+		padding: 0;
+		}
+	#footer {
+		display: none;
+		}
+        </script>
+<script type="text/javascript">
+if (window.parent.location !== window.location) {
+  $("<style type='text/css'>").text($("#iframe-embed-css").text()).appendTo("body");
+}
+</script>
+
+<div id="content">
+<h3>{% filter ak_text:"event_created_headline" %}You're almost done!{% endfilter %}</h3><br>
+<h2>{% filter ak_text:"event_created_text_pt1" %}Check your e-mail{% endfilter %} {% if args.email %}( {{args.email}}) {% endif %}{% filter ak_text:"event_created_text_pt2" %}and click the link inside it to confirm your event. If you don't see the email, check your spam folder — or email events@350.org.{% endfilter %}</h2>
+</div>
+<script type="text/javascript">
+	jQuery(window).load(function() {
+		if ('parentIFrame' in window) {
+          parentIFrame.sendMessage("event_created");
+        }
+	});
+	</script>
+{% endblock %}

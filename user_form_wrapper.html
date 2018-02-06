@@ -1,0 +1,28 @@
+{% comment %}You can optionally use this to replace known_user/unknown_user divs in your templates.{% endcomment %}
+{% load actionkit_tags %}
+
+<div id="known_user">
+ <div id="known_user_welcome">
+  <span id="known-user-greeting">{% filter ak_text:"general_recognized_user_greeting_prename" %}Hi{% endfilter %} <span id="known_user_name"></span>{% filter ak_text:"general_recognized_user_greeting_postname" %}!{% endfilter %}</span>
+  <p>{% filter ak_text:"general_recognized_user_instructions" %}We have your contact info saved from last time, just click the button below to continue.{% endfilter %}</p>
+ </div> 
+ <div id="known_user_logout">
+  <span class="user-logout-link"><strong>{% filter ak_text:"general_recognized_user_logout_prename" %}Not{% endfilter %} <span id="known_user_name"></span>{% filter ak_text:"general_recognized_user_logout_postname" %}?{% endfilter %}</strong><br/><a href="?" onclick="return actionkit.forms.logOut()">{% filter ak_text:"general_recognized_user_logout_instructions" %}Click here to log out.{% endfilter %}</a></span>
+ </div>
+</div>
+
+<div id="unknown_user" class="user-form ak-labels-overlaid ak-errs-below">
+ {% include "./user_form.html" %}
+ <div style="display: none">
+  <input name="user_honey">
+ </div>	
+
+</div>
+
+{% if page.custom_fields.form_additional_fields %}
+{% autoescape off %}
+<div id="addl-fields" class="ak-labels-above">
+ {{ page.custom_fields.form_additional_fields }}
+</div>
+{% endautoescape %}
+{% endif %}

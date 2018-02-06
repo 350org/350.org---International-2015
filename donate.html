@@ -1,0 +1,434 @@
+{% extends "./wrapper.html" %}{% load actionkit_tags %}
+
+
+{% block content %}
+
+{% if page.custom_fields.page_is_inactive %}
+  <div id="page-header">
+    <h2 id="page-title" class="page-title">{{ page.title }}</h2>
+  </div>
+<div id="page-inactive" class="donate">
+{% autoescape off %}
+{{ page.custom_fields.page_is_inactive }}
+{% endautoescape %}
+</div>
+{% else %}
+<div class="donate">
+<script type="text/javascript">
+$(document).ready(function(){
+$(".amount label").on('click', function(){
+  $('.amount label.active').removeClass('active');
+  $(this).toggleClass('active');
+  $('#amount_other_field').val('');
+});
+$(".listed_amounts input").change(function(){
+	$('#amount_other_field').val('');
+});
+$("#inhonorof").hide();
+$("#inhonorcheck").change(function(){
+	if ( $(this).is(':checked') ) {
+		$("#inhonorof").slideDown();
+	} else {
+		$("#inhonorof").slideUp();
+	}
+});
+if (actionkit.args.currency && $("#id_currency_"+actionkit.args.currency).length) {
+	$("#id_currency_"+actionkit.args.currency).trigger("click");
+}
+	
+});
+function clear_radio_buttons() {
+     $('input.amount_radio_button').attr('checked', false);
+     $('.amount label.active').removeClass('active');
+}
+
+function clear_other() {
+     $('#amount_other_field').val('');
+}
+
+var address_fields = [ 'address1', 'address2', 'city', 
+                       'state', 'zip' {% if page.allow_international %},'postal', 'region', 'country'{% endif %} ];
+
+function toggle_shipping(e) {
+    for (i in address_fields) {
+        field = address_fields[i];
+        if (e.checked) {
+            $('#shipping_' + field).val($('#' + field).val());
+            $('#id_shipping_state').val($('#state').val());
+            $('#shipping_' + field).attr("readonly", true); 
+        } else {
+            $('#shipping_' + field).val("");
+            $('#id_shipping_state').val("");
+            $('#shipping_' + field).attr("readonly", false);
+        }
+    }
+{% if page.allow_international %}
+    shipping_country_change();
+{% endif %}
+}
+
+function sync_to_shipping(e) {
+    if (!$('#shipping_same').attr("checked"))
+        return;
+    for (i in address_fields) {
+        field = address_fields[i];
+        $('#shipping_' + field).val($('#' + field).val());
+        $('#id_shipping_state').val($('#state').val());
+    }
+{% if page.allow_international %}
+    shipping_country_change();
+{% endif %}
+}
+
+function update_total() {
+   var total = 0.0;
+   $('.ak_product_inputs').each(function (i) {
+           // max == 1 produces checkboxes for these
+           if (this.type == "checkbox" && !this.checked)
+               return;
+
+           // check that quantity is a valid int
+           var quantity = this.value;
+           if (quantity.length == 0 || !/^[1-9]\d*$/.test(quantity))
+               return;
+
+           // and price is a valid dollar amount
+           var price = $('#' + this.id + '_price').text();
+           if (price.length == 0 || !/^[1-9]\d*(\.\d\d)?$/.test(price))
+               return;
+
+           total += parseInt(quantity) * parseFloat(price);
+       });
+
+   $('.ak_candidate_inputs').each(function (i) {
+           // check that amount is a valid amount
+           var amount = this.value;
+           if (amount.length == 0 || !/^[0-9]\d*(\.\d\d)?$/.test(amount))
+               return;
+
+           total += parseFloat(amount);
+       });
+
+   // look for checked off donation amounts
+   var amount_checked = $('input:radio[name=amount]:checked').val(); 
+   if (amount_checked) {
+       total += parseFloat(amount_checked);
+   } else {
+       // or other amounts
+       var other = $('#amount_other_field').val();
+       if (other && /^[0-9]\d*(\.\d{2})?$/.test(other))
+           total += parseFloat(other);
+   }
+
+   var new_total = total == 0 ? "" : "$" + total.toFixed(2);
+   if (new_total != $('#total').html()) {
+       $('#total').html(new_total);
+   }
+}
+
+{% if page.allow_international %}
+function country_change() {
+     country = $('#country').val();
+     if (country == 'United States') {
+        $('#us_billing_fields').show();
+        $('#intl_billing_fields').hide();
+     } else {
+        $('#us_billing_fields').hide();
+        $('#intl_billing_fields').show();
+     }
+     sync_to_shipping();
+}
+function shipping_country_change() {
+     shipping_country = $('#shipping_country').val();
+     
+     if (shipping_country == 'United States') {
+        $('#us_shipping_fields').show();
+        $('#intl_shipping_fields').hide();
+     } else {
+        $('#us_shipping_fields').hide();
+        $('#intl_shipping_fields').show();
+     }
+}
+{% endif %}
+
+{% if default_amount %}
+$(function () {
+    if (actionkit && actionkit.args && (!actionkit.args.prefill)) {
+        $('input.amount_radio_button[value={{default_amount}}]' ).attr('checked', true).siblings('label').addClass('active');
+    }
+});
+{% endif %}
+
+//-->
+</script>
+
+{% with page.payment_processor_information as pp %}
+{% if pp.use_cse %}
+<script language="javascript" src="/samples/ak_braintree_cse.js">
+</script>
+<script language="javascript" src="https://js.braintreegateway.com/v1/braintree.js">
+</script>
+<script type="text/javascript">
+$(function () {
+    var form = $('form#act')[0];
+        clientSideEncryptionKey = "{{ pp.cse_key }}";
+    braintree_cse.encryptOnSubmit(form, clientSideEncryptionKey);
+    $('form#act :input[type=submit]').removeAttr('disabled');
+});
+window.onBraintreeDataLoad = function() {
+    BraintreeData.setup("{{ pp.merchant_id }}", "act", BraintreeData.environments.{{ pp.braintree_environment }});
+};
+</script>
+{% endif %}
+{% if pp.use_tr %}
+<script language="javascript" src="/samples/braintree.js">
+</script>
+{% endif %}
+{% endwith %}
+
+  <div id="page-header">
+    <h2 id="page-title" class="page-title">{{ page.title }}</h2>
+  </div>
+
+<div class="{% ifequal page.payment_processor_name "braintree" %}braintree_form {% endifequal %} donate-form" >
+
+
+<form id="act" class="braintree_form ak-form ak-errors-below" name="act" method="post" action="/act/" accept-charset="utf-8">
+<input type="hidden" name="page" value="{{ page.name }}">
+
+<div id="form">
+<input type="hidden" name="utf8" value="&#x2714;">
+<input type="hidden" name="orig_akid" value="{{ akid }}">
+{% if not page.allow_international %}
+<input type="hidden" name="country" value="United States">
+{% endif %}
+
+<fieldset id="donation-amount">
+<h4 class="legend">
+{% ifequal page.custom_fields.donation_once_recurring_or_both "recurring" %}
+  <span>Monthly Donation ({% ifequal page.currency_sym "CAD " %}CAD{% endifequal %}{% ifequal page.currency_sym "AUD " %}AUD{% endifequal %}{% ifequal page.currency_sym "€" %}EUR{% endifequal %}{% ifequal page.currency_sym "£" %}GBP{% endifequal %}{% ifequal page.currency_sym "$" %}USD{% endifequal %}) </span>
+{% else %}
+  <span>Secure Donation ({% ifequal page.currency_sym "CAD " %}CAD{% endifequal %}{% ifequal page.currency_sym "AUD " %}AUD{% endifequal %}{% ifequal page.currency_sym "€" %}EUR{% endifequal %}{% ifequal page.currency_sym "£" %}GBP{% endifequal %}{% ifequal page.currency_sym "$" %}USD{% endifequal %}) </span>
+{% endifequal %}
+</h4>
+
+<div id="amount_list" class="ak-err-above">
+{% ifequal page.custom_fields.donation_once_recurring_or_both "recurring" %}
+<span style="font-weight:bold;">Select a monthly donation amount: </span>
+{% endifequal %}
+<div class="listed_amounts">
+  {% for amount in amounts %}
+        {% ifequal amount "other" %}
+<br class="clear" />
+</div>
+          <div class="ak-labels-overlaid input text" id="amount_other">
+           <noscript><input type="radio" value="" class="amount_radio_button" name="amount"></noscript>
+           <label for="amount_other_field">Other Amount</label><input type="text" id="amount_other_field" name="amount_other" size="7" pattern="[0-9]*" onKeypress="clear_radio_buttons();" onClick="update_total()" onBlur="update_total()" onChange="update_total()">
+          </div>
+       {% else %}
+          <div class="input amount"><label for="id_amount_{{amount}}">{% ifequal page.currency_sym "CAD " %}${% endifequal %}{% ifequal page.currency_sym "AUD " %}${% endifequal %}{% ifequal page.currency_sym "€" %}€{% endifequal %}{% ifequal page.currency_sym "£" %}£{% endifequal %}{% ifequal page.currency_sym "$" %}${% endifequal %}{{ amount }}</label>
+          <input type="radio" id="id_amount_{{amount}}" value="{{ amount }}" class="amount_radio_button" name="amount" onClick="update_total()"  onBlur="update_total()" onChange="update_total(); clear_other">
+          </div>
+       {% endifequal %}
+  {% endfor %}
+</div>
+<style>#amount_other:before{content:'{% ifequal page.currency_sym "CAD " %}${% endifequal %}{% ifequal page.currency_sym "AUD " %}${% endifequal %}{% ifequal page.currency_sym "€" %}€{% endifequal %}{% ifequal page.currency_sym "£" %}£{% endifequal %}{% ifequal page.currency_sym "$" %}${% endifequal %}';}</style>
+
+{% if page.custom_fields.donation_once_recurring_or_both %}{% ifequal page.custom_fields.donation_once_recurring_or_both "recurring" %}<input type="hidden" id="recurring" name="donation_type" value="recurring" />{% endifequal %}{% ifequal page.custom_fields.donation_once_recurring_or_both "once" %}<input type="hidden" id="one-time" name="donation_type" value="single" />{% endifequal %}
+{% else %}
+<div id="donation_type">
+	<div class="radio-input">
+  <input class="radio" type="radio" id="one-time" name="donation_type" value="single" checked /> <label 
+id="one-time-label" for="one-time" class="radio-label" title="Give a one-time donation to 350.org">Donate Once</label> 
+	</div>
+	<div class="radio-input">
+  <input id="recurring" class="radio" type="radio" name="donation_type" value="recurring" title="Automatically donate a set amount on the 1st of each month." /> <label for="recurring" class="radio-label" id="recurring-label" title="Automatically donate a set amount on the 1st of each month.">Donate Monthly</label>
+		</div>
+</div>
+{% endif %}
+
+<!--
+/fieldset>
+<fieldset id="payment-info" class="ak-labels-overlaid ">
+<h4 class="legend"><span>Payment Info</span></h4 
+-->
+
+<div class="cc-info ak-labels-overlaid" >
+<div class="input">
+<label for="name" title="Your first and last name" >First and Last Name</label> <input id="name" type="text" name="name" title="Your first and last name" /> 	
+</div>
+<div class="input">
+<label title="Your credit card number, all major credit cards accepted." for="card_num">Credit Card Number</label> 
+<input id="card_num" pattern="[0-9]*" title="Your credit card number, all major credit cards accepted." type="text" name="card_num" />
+    
+</div>
+<div class="input text CVV">
+<label for="card_code" title="The 3-4 digit verification number on the back of your credit card.">CVV</label><input id="card_code" pattern="[0-9]*" title="The 3-4 digit verification number on the back of your credit card." type="text" name="card_code" size="4" />
+</div>
+
+
+
+<label title="The expiration date on your credit card." class="no-overlay">Expires:&nbsp;&nbsp; </label> 
+<select id="exp_date_month" name="exp_date_month">
+  <option value="01">01</option>
+  <option value="02">02</option>
+  <option value="03">03</option>
+  <option value="04">04</option>
+  <option value="05">05</option>
+  <option value="06">06</option>
+  <option value="07">07</option>
+  <option value="08">08</option>
+  <option value="09">09</option>
+  <option value="10">10</option>
+  <option value="11">11</option>
+  <option value="12">12</option>
+</select>
+/
+<select id="exp_date_year" name="exp_date_year">
+  <option value="13">2013</option>
+  <option value="14">2014</option>
+  <option value="15">2015</option>
+  <option value="16">2016</option>
+  <option value="17">2017</option>
+  <option value="18">2018</option>
+  <option value="19">2019</option>
+  <option value="20">2020</option>
+  <option value="21">2021</option>
+  <option value="22">2022</option>
+  <option value="23">2023</option>
+  <option value="24">2024</option>
+  <option value="25">2025</option>
+</select>
+
+</div>
+<div id="total_div"></div>
+<script type="text/ak-template" for="total_div">
+[% if (has_products || has_candidates) { %]
+<p style="background-color: yellow; padding-top: 5px; padding-bottom: 5px;"><label for="amount">Total Amount: <span id="total"></span></label>
+[% } %]
+</script>
+
+</fieldset>
+<fieldset id="user-info" class="ak-labels-overlaid ">
+<h4 class="legend"><span>Billing Information</span></h4>
+
+<div style="display: none"><div id="known_user">
+Not <span id="known_user_name"></span>?  <a href="" onclick="return actionkit.forms.logOut()">Click here.</a>
+</div></div>
+<div id="unknown_user"></div>
+<div class="billing {% if page.allow_international %}intl{% else %}us{% endif %}">
+
+{% if page.allow_international %} 
+	<label for="country" class="select-label">Country:</label>{% with 'country_change()' as onchange %}{% include "./country_select.html" %}{% endwith %}
+	
+
+{% endif %}
+<div class="input">
+<label for="address1" title="The street address for your credit card.">Street address</label><input title="The street address for your credit card." id="address1" type="text" name="address1" onchange="sync_to_shipping()" onblur="sync_to_shipping()"/>
+  
+</div>
+        <label for="address2" style="display:none;">Address, line 2</label><input style="display:none;" title="Line 2 of your address (optional)" id="address2" type="text" name="address2" onchange="sync_to_shipping()" onblur="sync_to_shipping()"/>
+    
+<div class="input">
+<label title="The billing city for your credit card" for="city">City</label><input title="The billing city for your credit card" id="city" type="text" name="city" onchange="sync_to_shipping()" onblur="sync_to_shipping()" />
+	  
+</div>
+
+{% if page.allow_international %}         
+<div id="intl_billing_fields">
+  <div class="input">
+    <label title="The billing region/state for your credit card" for="region">State / Region</label><input title="The billing region/state for your credit card" id="region"  type="text" name="region" size="20" onchange="sync_to_shipping()" onblur="sync_to_shipping()"/>
+    
+  </div>
+  <div class="input">
+    <label title="The billing postal code for your credit card" for="postal">Zip / Postal Code</label> <input title="The billing postal code for your credit card" id="postal"  type="text" name="postal" size="10" onchange="sync_to_shipping()" onblur="sync_to_shipping()"/>
+   		
+ </div>   
+</div>
+
+{% endif %}
+
+<div id="us_billing_fields">
+  <div class="input">
+    <label for="id_state" class="select-label">State</label>{% with 'sync_to_shipping()' as onchange %}{% include "./state_select.html" %}{% endwith %}
+  </div>
+  <div class="input">
+    <label for="zip" title="Your ZIP code">Zip</label> <input id="zip" title="Your ZIP code" type="text" name="id_zip" maxlength="5" size="5" onchange="sync_to_shipping()" onblur="sync_to_shipping()"/>
+  </div>
+</div>
+
+{% if page.allow_international %} 
+  <script type="text/javascript">country_change();</script>
+{% endif %}
+    <div class="input">
+    <label title="Your email address, e.g. 'janedoe@email.com. We'll send your receipt to this address." for="email">Email Address</label><input id="email" type="text" name="email" title="Your email address, e.g. 'janedoe@email.com. We'll send your receipt to this address." />
+  
+</div>
+</div>
+</fieldset>
+<fieldset id="in_honor_of">
+<div class="input checkbox"><input type="checkbox" value="1" name="inhonorcheck" id="inhonorcheck" /> <label for="inhonorcheck">Donate in someone's honor.</label></div>
+			<div id="inhonorof" class="ak-labels-overlaid">
+				<div class="input text"><label for="action_in_honor_of_name">Honoree's 
+Name</label> <input type="text" id="action_in_honor_of_name" name="action_in_honor_of_name" /></div>
+<div class="input textarea" title="An optional note to the honoree."> <label for="action_in_honor_of_note" title="An optional note to the honoree.">Note to Honoree</label><textarea id="action_in_honor_of_note" name="action_in_honor_of_note" title="An optional note to the honoree." ></textarea></div>
+				<div class="input text" title="The email address to send a notification of the donation to."> <label for="action_in_honor_of_email">Honoree's Email Address</label><input type="text" id="action_in_honor_of_email" name="action_in_honor_of_email" /></div>
+<p class="form-instructions">We'll send a notification of your donation to this email address (optional).</p>
+			
+</div>
+<ul id="ak-errors"><li></li></ul>
+<input type="submit" class="submit" value="{% if page.custom_fields.form_submit_button_text %}{{ page.custom_fields.form_submit_button_text }}{% else %}Donate{% endif %}">
+
+{% ifequal page.custom_fields.donation_once_recurring_or_both "recurring" %}
+<style type="text/css">
+#one-time-link{
+color:#fff;}
+#one-time-link:hover{
+color:#cccecf;}
+</style>
+<p style="margin-top:10px"><a id="one-time-link" href="https://act.350.org/donate/december2013_single/">Prefer to make a one-time donation?</a></p>
+{% endifequal %}
+</fieldset>
+
+
+<br class="clear"/>
+
+
+</div>
+
+</form>
+
+
+<div class="alt-payment">
+<img style="float:right;margin:0 0 1em 1em;" src="https://s3.amazonaws.com/s3.350.org/images/RapidSSL_SEAL-90x50.gif" height="50" width="90" alt="This site is secured by RapidSSL" />
+<p><strong style="text-transform:uppercase;">Security:</strong> This page uses <a href="http://en.wikipedia.org/wiki/HTTP_Secure" target="_blank">Secure HTTP</a> and <a href="http://en.wikipedia.org/wiki/Transport_Layer_Security" target="_blank">SSL</a> technologies to make sure your information is 100% secure.</p>
+
+<div style="margin-bottom:1em;"><strong style="text-transform:uppercase;">Donate by check:</strong> Make your check payable to <em>350.org</em>
+and mail it to <em>350.org, 20 Jay St, Suite 1010, Brooklyn, NY 11201, USA</em>. You can also donate with {% autoescape off %}{% if page.custom_fields.donation_paypal_alt %} {{ page.custom_fields.donation_paypal_alt }} {% else %}  <form id="paypal-linkform" style="display:inline;" method="post" action="https://www.paypal.com/cgi-bin/webscr">
+      <input type="hidden" value="_s-xclick" name="cmd">
+      <input type="hidden" name="hosted_button_id" value="D5TVX9QFJNQVA">
+      <input id="paypal" type="image" src="https://s3.amazonaws.com/s3.350.org/images/paypal.png" name="submit" alt="PayPal - The safer, easier way to pay online!">
+      <img alt="" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+    </form>{% endif %}{% endautoescape %}.</div>
+<p><strong style="text-transform:uppercase;">Contact Us: </strong>Questions? Problems? Please contact us at <a href="mailto:donations@350.org?subject=Question%20about%20donation%20to%20350.org">donations@350.org</a>.</p>
+<p><strong style="text-transform:uppercase;">Update Your Account: </strong>To update your account with a new credit card, new expiration date, or new amount please visit <a href="http://350.org/update">350.org/update</a></p>
+
+<p>350.org is a registered 501c3 non-profit organization and all contributions are tax-deductible in the United States. 350.org's EIN/Tax ID is 26-1150699.</p>
+
+
+<br class="clear" />
+</div>
+</div>
+
+{% endif %}
+
+<div id="content">
+    {% autoescape off %}
+    <div class="text">{% include_tmpl form.ask_text %}</div>
+    {% endautoescape %}
+
+
+
+</div><br style="clear:both" />
+</div>
+{% endblock %}

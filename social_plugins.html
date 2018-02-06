@@ -1,0 +1,71 @@
+{% load actionkit_tags %}
+{% if page.custom_fields.page_hide_recent_signers %}{% else %}
+<div id="recent-actions-wrapper">
+	<div class="progress-heading">{% filter ak_text:"general_most_recent_signers" %}Recently signed up{% endfilter %}:</div>
+	<div id="recent-actions">
+		<link rel="stylesheet" media="screen" href="https://s3.amazonaws.com/s3.350.org/images/country-flag-min.css" type="text/css" />
+		{% for a in page.recent_actions|slice:":100" %}
+		{% with a.user as action_user %}
+		{% if action_user.name and action_user.subscription_status == "subscribed" and not action_user.custom_fields.honey and not a.custom_fields.honey %}
+		<div class="recent-action">
+			<span class="user">{{ action_user.name }}</span> <span class="flag {{ action_user.country }}" title="{{ action_user.country }}">{{ action_user.country }}</span>
+		</div>
+		{% endif %}
+		{% endwith %}
+		{% endfor %}
+		<script type="text/javascript">
+		$(document).ready(function(){
+		if ( ($("#recent-actions").children().length) > 3 ) {
+		$('#recent-actions div').hide().each(function(i){
+			if ( i < 3 ){
+				$(this).show();
+			}
+		});
+		function scrollNames(){
+			var rActions = $("#recent-actions div");
+			$(rActions).each(function(i){
+				if ( i == 2 ){
+					$(this).slideUp(750).appendTo("#recent-actions");
+				} else if ( i == 3 ){
+					$(this).prependTo("#recent-actions").slideDown(800);	
+				}
+			});
+		}
+		
+		
+		window.setInterval(scrollNames, 3000);
+		
+		} else {
+			$("#recent-actions-wrapper").remove(); 
+		var emptyHTML = $("#form-secondary").html();
+		var trimmedHTML = $.trim( emptyHTML );
+		$("#form-secondary").html( trimmedHTML );
+		}
+		
+		});
+		</script>
+	</div>
+</div>
+{% endif %}
+
+</div>
+
+<div id="form-sm" class="sm presign">
+{% if page.custom_fields.fb_share_url %}
+	<a class="fb-share" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u={{ page.custom_fields.fb_share_url }}?source=fb-AK">{% filter ak_text:"general_share_on_fb" %}Share on Facebook{% endfilter %}</a>
+{% else %}
+	<a class="fb-share" target="_blank" href="/share/link?type=fb&amp;page_name={{page.name}}&amp;action_id={{action.id}}&amp;akid={{akid}}">{% filter ak_text:"general_share_on_fb" %}Share on Facebook{% endfilter %}</a>
+{% endif %}	
+{% if page.custom_fields.tweet_content %}
+	<a class="tw-share" target="_blank" href="http://twitter.com/home?status={{ page.custom_fields.tweet_content|urlencode}}">{% filter ak_text:"general_tweet" %}Tweet{% endfilter %}</a>
+{% else %}
+	<a class="tw-share" target="_blank" href="/share/link?type=tw&amp;page_name={{page.name}}&amp;action_id={{action.id}}&amp;akid={{akid}}">{% filter ak_text:"general_tweet" %}Tweet{% endfilter %}</a>
+{% endif %}
+	
+{% if page.custom_fields.page_is_c4 %}{% else %}
+<div class="page-link">
+	<span class="page-link-label" onClick="SelectAll('page-link-url')">{% filter ak_text:"general_share_link" %}Link:{% endfilter %}</span><input onClick="SelectAll('page-link-url')" id="page-link-url" type="text" class="page-link-url" value="{{ page.canonical_url }}"/>
+</div>
+{% endif %}
+
+</div>
