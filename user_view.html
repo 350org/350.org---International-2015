@@ -32,8 +32,8 @@
 		<h2>{% filter ak_text:"user_view_recurringdonation_header" %}Your Recurring Donations{% endfilter %}</h2>
 		<ul>
 		{% for profile in recurring_donations %}
-		<li>{{ profile.amt }} a {{ profile.inverse_period_display|lower }}, started on {{ profile.created_at|date:"m/d/Y" }}. <br><br>
-		You've given a total of {{ profile.payment_total_amt }}. 
+		<li>{{ profile.amt }} a {{ profile.inverse_period_display|lower }}, started on {{ profile.created_at|date:"m/d/Y" }}. <br>
+		You've given a total of {{ profile.payment_total_amt }}.&nbsp;
 		{% if profile.is_active %}
 		  {% if profile.order.payment_method != "paypal" %}
 			<a href="/cms/pledge/update/update/">Update your credit card</a> or <a href="/cms/pledge/cancel/monthly/">cancel at any time.</a>
@@ -43,6 +43,7 @@
 		{% else %}
 		  <b>{{ profile.get_status_display }} on {{ profile.updated_at|date:"m/d/Y" }} </b>
 		{% endif %}
+		</li>
 		{% endfor %}
 		</ul>
 	</div>
